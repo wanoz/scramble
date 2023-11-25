@@ -1,4 +1,5 @@
 import math
+from typing import List
 
 # Encryption and decryption support functions
 def char_position(letter):
@@ -8,7 +9,7 @@ def pos_to_char(pos):
     return chr(pos + 97)
 
 # Encrypt list of texts
-def encrypt(texts, mkey):
+def encrypt(texts: List[str], mkey: str) -> List[str]:
     enc_mkey = []
     enc_salt = 0
     for i, c in enumerate(mkey):
@@ -32,7 +33,7 @@ def encrypt(texts, mkey):
     return enc_texts
 
 # Decrypt list of encrypted texts
-def decrypt(enc_texts, mkey):
+def decrypt(enc_texts: List[str], mkey: str) -> str:
     enc_mkey = []
     enc_salt = 0
     for i, c in enumerate(mkey):
@@ -58,35 +59,73 @@ def decrypt(enc_texts, mkey):
     return texts
 
 # Generate sort index for encrypt and decrypt
-def generate_sort_idx(input_list, n):
+def generate_sort_idx(input_list: List[str], n: int) -> List[int]:
     if len(str(int(n))) < len(input_list):
         n = 1234567654321*int(n) 
     idx = [i for i in str(n)[-len(input_list):]]
     return idx
 
 # Encrypt list order
-def encrypt_sort(input_list, idx):
+def encrypt_sort(input_list: List[str], idx: List[int]) -> List[str]:
     idx_sort = sorted(range(len(idx)), key=idx.__getitem__)
     output_list = [input_list[i] for i in idx_sort]
     return output_list
 
 # Decrypt list order
-def decrypt_sort(input_list, idx):
+def decrypt_sort(input_list: List[str], idx: List[int]) -> List[str]:
     idx_sort = sorted(range(len(idx)), key=idx.__getitem__)
     output_ori_map = {i:input_list[pos] for pos, i in enumerate(idx_sort)}
     output_list = [output_ori_map[k] for k in sorted(output_ori_map)]
     return output_list
 
-
 # Execute main script
 if __name__ == '__main__':
     while True:
-        mode = input('\nSelect from options: Encrypt (1), Decrypt (2), Exit (3): ')
-
-        if mode == '1' or mode == '2' or mode == '3':
+        mode = input('\nSelect from options: Encrypt from txt file (0), Encrypt (1), Decrypt (2), Exit (3): ')
+        options = ['0', '1', '2', '3']
+        options_msg = ', '.join(options[:-1]) + f"or {options[-1]}"
+        if mode in options:
             break
         else:
-            print('Please enter either 1, 2 or 3 based on selection options.')
+            print(f"Please enter either {options_msg} based on selection options.")
+
+    # Encryption of texts from txt file
+    if mode == '0':
+        while True:
+            mkey = input('\nSet master key: ')
+            
+            if len(mkey) >= 4:
+                break
+            else:
+                print('Please set a master key that contains at least 4 characters.')
+
+        while True:
+            filename = input('Enter the name of the txt file: ')
+            texts = []
+            if not filename.endswith('.txt'):
+                filename = f"{filename}.txt"
+            try:
+                with open(f"{filename}", 'r') as f:
+                    texts = [text for text in f]
+                break
+            except:
+                print('Cannot locate and/or read input txt file.')
+
+        # Encrypting
+        enc_texts = encrypt(texts, mkey)
+        check_texts = decrypt(enc_texts, mkey)
+
+        # Check encrypt and decrypt function
+        try: 
+            assert check_texts == texts
+            print('No issues encountered.')
+        except AssertionError:
+            print('Issue encountered during encrypt and decrypt process!')
+            
+        # Save file
+        with open('enc_keys.txt','w') as f:
+            f.write('\n'.join(enc_texts))
+        print('Task completed\n')
 
     # Encryption of texts
     if mode == '1':
